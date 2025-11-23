@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yilin (Gevin) Zhu - Retro Portfolio</title>
+    
+    <!-- 1. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Load React & ReactDOM (UMD) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- 3. Load Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 4. Load Lucide Icons (Vanilla UMD) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Font Injection -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+        .font-pixel { font-family: 'VT323', monospace; font-size: 1.2rem; }
+        .font-pixel-bold { font-family: 'Press Start 2P', cursive; }
+        @keyframes flicker {
+            0% { opacity: 0.02; }
+            5% { opacity: 0.05; }
+            10% { opacity: 0.02; }
+            15% { opacity: 0.06; }
+            20% { opacity: 0.02; }
+            50% { opacity: 0.02; }
+            55% { opacity: 0.05; }
+            60% { opacity: 0.02; }
+            65% { opacity: 0.04; }
+            70% { opacity: 0.02; }
+            100% { opacity: 0.02; }
+        }
+        .animate-flicker { animation: flicker 0.15s infinite; }
+        
+        /* Scrollbar Hiding */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Error Screen Style */
+        #error-display { display: none; color: #ef4444; background: #18181b; padding: 20px; font-family: monospace; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 10000; }
+    </style>
+</head>
+<body class="bg-black text-zinc-300 overflow-hidden h-screen w-screen">
+    <div id="root"></div>
+    <div id="error-display"></div>
+
+    <script type="text/babel">
+        // --- ERROR TRAPPING ---
+        window.onerror = function(message, source, lineno, colno, error) {
+            const el = document.getElementById('error-display');
+            el.style.display = 'block';
+            el.innerHTML = `<strong>SYSTEM ERROR:</strong><br/>${message}<br/><br/>See console for details.`;
+        };
+
+        try {
+            const { useState, useEffect, useRef, useCallback } = React;
+
+            // --- ICON ADAPTER (FIXED) ---
+            // Helper to capitalize first letter (user -> User)
+            const toPascalCase = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+            const LucideIcon = ({ name, size = 24, color = "currentColor", strokeWidth = 2, className, ...props }) => {
+                // Try direct name, then try lowercase version (React passes "User", Lucide might have "user")
+                const iconName = name.charAt(0).toLowerCase() + name.slice(1);
+                const iconData = lucide.icons[iconName] || lucide.icons[name];
+                
+                if (!iconData) {
+                    console.warn(`Icon not found: ${name}`);
+                    return null;
+                }
+                
+                return (
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width={size}
+                        height={size}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={color}
+                        strokeWidth={strokeWidth}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={className}
+                        {...props}
+                    >
+                        {iconData.map(([tag, attrs], i) => React.createElement(tag, { key: i, ...attrs }))}
+                    </svg>
+                );
+            };
+
+            // Create the Icons object with PascalCase keys so destructuring works
+            const Icons = {};
+            if (window.lucide && window.lucide.icons) {
+                Object.keys(window.lucide.icons).forEach(key => {
+                    const pascalKey = toPascalCase(key);
+                    Icons[pascalKey] = (props) => <LucideIcon name={key} {...props} />;
+                });
+            } else {
+                throw new Error("Lucide icons library failed to load.");
+            }
+
+            // Destructure the specific icons used in the app
+            // Note: If an icon is missing from the CDN version, it will be undefined.
+            // We default them to a generic component to prevent crashing.
+            const SafeIcon = (name) => Icons[name] || (() => null);
+
+            const User = SafeIcon('User');
+            const Briefcase = SafeIcon('Briefcase');
+            const Mail = SafeIcon('Mail');
+            const X = SafeIcon('X');
+            const Minus = SafeIcon('Minus');
+            const Square = SafeIcon('Square');
+            const Cpu = SafeIcon('Cpu');
+            const Terminal = SafeIcon('Terminal');
+            const Folder = SafeIcon('Folder');
+            const FileText = SafeIcon('FileText');
+            const GraduationCap = SafeIcon('GraduationCap');
+            const Layers = SafeIcon('Layers');
+            const Ruler = SafeIcon('Ruler');
+            const Maximize = SafeIcon('Maximize');
+            const Grid = SafeIcon('Grid');
+            const AlertTriangle = SafeIcon('AlertTriangle');
+            const HardDrive = SafeIcon('HardDrive');
+            const Monitor = SafeIcon('Monitor');
+            const PenTool = SafeIcon('PenTool');
+            const Power = SafeIcon('Power');
+            const Move = SafeIcon('Move');
+            const Zap = SafeIcon('Zap');
+            const RefreshCw = SafeIcon('RefreshCw');
+            const Download = SafeIcon('Download');
+            const Instagram = SafeIcon('Instagram');
+            const Activity = SafeIcon('Activity');
+            const Wifi = SafeIcon('Wifi');
+            const Gamepad2 = SafeIcon('Gamepad2');
+
+            // --- PERSONAL DATA ---
+            const PERSONAL_INFO = {
+                name: "Yilin (Gevin) Zhu",
+                tagline: "BUILD. BREAK. OPTIMIZE. REPEAT.", 
+                title: "UX ARCHITECT // HARDWARE MODDER",
+                about: "I don't just design interfaces; I engineer systems. With roots in Architecture (the bricks-and-mortar kind) and a master's in UX, I bridge the gap between physical constraints and digital freedom. Whether I'm drafting CAD plans, overclocking a custom rig, or coding a new component library, I'm obsessed with function, efficiency, and raw aesthetic.",
+                email: "yilinzhu@atlasruanni.com",
+                social: {
+                    instagram: "https://instagram.com/atlasruanni",
+                    linkedin: "https://www.linkedin.com/in/gevin-zhu",
+                    resume: "#" 
+                }
+            };
+
+            const SKILLS = [
+                { name: "UX_ARCHITECTURE", level: 90 },
+                { name: "CAD_DRAFTING", level: 95 },
+                { name: "PC_HARDWARE", level: 90 },
+                { name: "VISUAL_DESIGN", level: 85 },
+                { name: "REACT_STACK", level: 75 },
+            ];
+
+            const EDUCATION = [
+                {
+                    school: "Wilfrid Laurier Univ",
+                    degree: "MSc: UX Design",
+                    period: "ETA: JAN 2027",
+                    details: "Researching next-gen interaction models."
+                },
+                {
+                    school: "Univ of Toronto",
+                    degree: "HBA: Arch Studies",
+                    period: "JUNE 2025",
+                    details: "Graduated w/ Distinction. Visual Studies Major."
+                }
+            ];
+
+            const EXPERIENCE = [
+                {
+                    company: "ZYL Tech",
+                    role: "System Builder",
+                    period: "2025_PRESENT",
+                    description: "Building high-performance rigs from scratch. Diagnosing hardware failures, optimizing thermal airflow, and hardening Windows configs for max stability."
+                },
+                {
+                    company: "Skyview Windows",
+                    role: "CAD Drafter",
+                    period: "2024_2025",
+                    description: "Crushed architectural drafts and analyzed thermal data. Balanced sustainability specs with real-world building codes. Translated technical docs for stakeholders."
+                },
+                {
+                    company: "CACR",
+                    role: "Visual Lead",
+                    period: "2023_2024",
+                    description: "Owned the print & digital visual stack. Took concepts from wireframe to final production, ensuring brand consistency across all output channels."
+                }
+            ];
+
+            const PROJECTS = [
+                {
+                    title: "ECO_BLUEPRINT",
+                    type: "CAD_MODEL",
+                    desc: "Thermal performance planning meets brutalist aesthetics.",
+                    tags: ["AutoCAD", "Physics"],
+                    coords: "SEC_09"
+                },
+                {
+                    title: "BRAND_PACK_V1",
+                    type: "VISUAL_ASSETS",
+                    desc: "High-contrast identity system for audience engagement.",
+                    tags: ["Adobe_CC", "Vector"],
+                    coords: "SEC_04"
+                },
+                {
+                    title: "RIG_CONFIGURATOR",
+                    type: "HARDWARE",
+                    desc: "Bespoke PC build specs tailored for extreme workloads.",
+                    tags: ["Hardware", "Cooling"],
+                    coords: "SEC_01"
+                }
+            ];
+
+            // --- UTILITY COMPONENTS ---
+
+            const CornerBrackets = ({ color = "border-purple-600", size = "w-2 h-2" }) => (
+                <React.Fragment>
+                    <div className={`absolute -top-[2px] -left-[2px] ${size} border-t-2 border-l-2 ${color} z-20`}></div>
+                    <div className={`absolute -top-[2px] -right-[2px] ${size} border-t-2 border-r-2 ${color} z-20`}></div>
+                    <div className={`absolute -bottom-[2px] -left-[2px] ${size} border-b-2 border-l-2 ${color} z-20`}></div>
+                    <div className={`absolute -bottom-[2px] -right-[2px] ${size} border-b-2 border-r-2 ${color} z-20`}></div>
+                </React.Fragment>
+            );
+
+            const BootScreen = ({ onComplete }) => {
+                const [lines, setLines] = useState([]);
+                
+                useEffect(() => {
+                    const bootLines = [
+                    "BIOS DATE 01/21/25 15:22:38 VER: 1.0.2",
+                    "CPU: REACT_CORE V18.2.0, SPEED: 4.2GHz",
+                    "640K RAM SYSTEM  640K RAM PASSED",
+                    "DETECTING PRIMARY MASTER ... GEVIN_ZHU",
+                    "DETECTING PRIMARY SLAVE  ... PORTFOLIO_DATA",
+                    "LOADING KERNEL...",
+                    "INITIALIZING VIDEO ADAPTER ... OK",
+                    "MOUNTING VOLUMES ... OK",
+                    "BOOT SEQUENCE COMPLETE."
+                    ];
+
+                    let delay = 0;
+                    bootLines.forEach((line, index) => {
+                    delay += Math.random() * 300 + 100;
+                    setTimeout(() => {
+                        setLines(prev => [...prev, line]);
+                        if (index === bootLines.length - 1) {
+                        setTimeout(onComplete, 800);
+                        }
+                    }, delay);
+                    });
+                }, [onComplete]);
+
+                return (
+                    <div className="fixed inset-0 bg-black z-[100] p-8 font-pixel text-purple-500 text-lg md:text-xl flex flex-col justify-start overflow-hidden">
+                    {lines.map((line, i) => (
+                        <div key={i} className="mb-2 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">{`> ${line}`}</div>
+                    ))}
+                    <div className="animate-pulse mt-2 bg-purple-500 w-3 h-6 shadow-[0_0_10px_rgba(168,85,247,0.8)]"></div>
+                    </div>
+                );
+            };
+
+            const CRTOverlay = () => (
+                <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden h-full w-full mix-blend-hard-light">
+                    {/* Scanlines */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] pointer-events-none opacity-60"></div>
+                    {/* Flicker */}
+                    <div className="absolute inset-0 bg-white opacity-[0.02] animate-flicker pointer-events-none"></div>
+                    {/* Vignette */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_60%,rgba(0,0,0,0.8)_100%)] pointer-events-none"></div>
+                </div>
+            )
+
+            // --- SNAKE GAME COMPONENT ---
+            const SnakeGame = () => {
+                const canvasRef = useRef(null);
+                const [score, setScore] = useState(0);
+                const [gameStatus, setGameStatus] = useState('IDLE'); // IDLE, PLAYING, GAMEOVER
+                const [highScore, setHighScore] = useState(0);
+
+                // Game Logic Refs
+                const gameState = useRef({
+                    snake: [{x: 10, y: 10}],
+                    food: {x: 15, y: 5},
+                    direction: {x: 1, y: 0},
+                    nextDirection: {x: 1, y: 0},
+                    gridSize: 20,
+                    gridW: 0,
+                    gridH: 0,
+                    speed: 100,
+                    lastRender: 0
+                });
+
+                // Initialize and Handle Resize
+                useEffect(() => {
+                    const handleResize = () => {
+                    if (canvasRef.current) {
+                        const canvas = canvasRef.current;
+                        const parent = canvas.parentElement;
+                        canvas.width = parent.clientWidth;
+                        canvas.height = parent.clientHeight;
+                        gameState.current.gridW = Math.floor(canvas.width / gameState.current.gridSize);
+                        gameState.current.gridH = Math.floor(canvas.height / gameState.current.gridSize);
+                    }
+                    };
+                    
+                    window.addEventListener('resize', handleResize);
+                    handleResize(); // Initial size
+                    
+                    return () => window.removeEventListener('resize', handleResize);
+                }, []);
+
+                // Input Handling
+                useEffect(() => {
+                    const handleKeyDown = (e) => {
+                    if (gameStatus === 'IDLE' || gameStatus === 'GAMEOVER') {
+                        if (['Enter', ' ', 'ArrowUp', 'w'].includes(e.key)) {
+                        startGame();
+                        }
+                        return;
+                    }
+
+                    const { nextDirection } = gameState.current;
+                    
+                    switch(e.key) {
+                        case 'ArrowUp': case 'w':
+                        if (nextDirection.y === 0) gameState.current.nextDirection = {x: 0, y: -1};
+                        break;
+                        case 'ArrowDown': case 's':
+                        if (nextDirection.y === 0) gameState.current.nextDirection = {x: 0, y: 1};
+                        break;
+                        case 'ArrowLeft': case 'a':
+                        if (nextDirection.x === 0) gameState.current.nextDirection = {x: -1, y: 0};
+                        break;
+                        case 'ArrowRight': case 'd':
+                        if (nextDirection.x === 0) gameState.current.nextDirection = {x: 1, y: 0};
+                        break;
+                    }
+                    };
+
+                    window.addEventListener('keydown', handleKeyDown);
+                    return () => window.removeEventListener('keydown', handleKeyDown);
+                }, [gameStatus]);
+
+                const startGame = () => {
+                    gameState.current.snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+                    gameState.current.direction = {x: 1, y: 0};
+                    gameState.current.nextDirection = {x: 1, y: 0};
+                    gameState.current.score = 0;
+                    setScore(0);
+                    setGameStatus('PLAYING');
+                    placeFood();
+                };
+
+                const placeFood = () => {
+                    const { gridW, gridH, snake } = gameState.current;
+                    let valid = false;
+                    let newFood = {};
+                    
+                    while (!valid) {
+                    newFood = {
+                        x: Math.floor(Math.random() * gridW),
+                        y: Math.floor(Math.random() * gridH)
+                    };
+                    valid = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+                    }
+                    gameState.current.food = newFood;
+                };
+
+                const gameOver = () => {
+                    setGameStatus('GAMEOVER');
+                    if (score > highScore) setHighScore(score);
+                };
+
+                // Game Loop
+                useEffect(() => {
+                    if (gameStatus !== 'PLAYING') return;
+
+                    let animationFrameId;
+                    let lastTime = 0;
+
+                    const loop = (time) => {
+                    if (time - lastTime > gameState.current.speed) {
+                        update();
+                        lastTime = time;
+                    }
+                    draw();
+                    animationFrameId = requestAnimationFrame(loop);
+                    };
+
+                    const update = () => {
+                    const state = gameState.current;
+                    state.direction = state.nextDirection;
+
+                    const head = { ...state.snake[0] };
+                    head.x += state.direction.x;
+                    head.y += state.direction.y;
+
+                    if (head.x < 0) head.x = state.gridW - 1;
+                    if (head.x >= state.gridW) head.x = 0;
+                    if (head.y < 0) head.y = state.gridH - 1;
+                    if (head.y >= state.gridH) head.y = 0;
+
+                    if (state.snake.some(s => s.x === head.x && s.y === head.y)) {
+                        gameOver();
+                        return;
+                    }
+
+                    state.snake.unshift(head);
+
+                    if (head.x === state.food.x && head.y === state.food.y) {
+                        setScore(s => s + 10);
+                        placeFood();
+                    } else {
+                        state.snake.pop();
+                    }
+                    };
+
+                    const draw = () => {
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    const { gridSize, snake, food } = gameState.current;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.fillStyle = '#22c55e';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#22c55e';
+                    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = '#a855f7';
+                    snake.forEach((segment, i) => {
+                        if (i === 0) {
+                            ctx.fillStyle = '#d8b4fe'; 
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = '#a855f7';
+                        } else {
+                            ctx.fillStyle = '#a855f7';
+                            ctx.shadowBlur = 0;
+                        }
+                        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+                    });
+                    };
+
+                    animationFrameId = requestAnimationFrame(loop);
+                    return () => cancelAnimationFrame(animationFrameId);
+                }, [gameStatus]);
+
+                useEffect(() => {
+                    if (gameStatus !== 'PLAYING') {
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0,0, canvas.width, canvas.height);
+                    }
+                    }
+                }, [gameStatus]);
+
+                return (
+                    <div className="absolute inset-0 flex items-center justify-center z-0 bg-black/20" onClick={() => window.focus()}>
+                    <canvas ref={canvasRef} className="absolute inset-0 z-0 block opacity-50" />
+                    
+                    <div className="relative z-10 text-center">
+                        {gameStatus === 'IDLE' && (
+                        <div className="animate-pulse space-y-4">
+                            <h2 className="text-4xl font-pixel-bold text-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">SYSTEM_IDLE</h2>
+                            <div className="inline-flex items-center gap-2 border-2 border-purple-500/50 bg-black/80 px-6 py-3 rounded-full cursor-pointer hover:bg-purple-900/20 transition-colors" onClick={startGame}>
+                                <Gamepad2 className="text-purple-400" />
+                                <span className="text-purple-300 font-pixel tracking-widest">PRESS SPACE TO HACK</span>
+                            </div>
+                        </div>
+                        )}
+
+                        {gameStatus === 'GAMEOVER' && (
+                        <div className="space-y-4 bg-black/90 p-8 border-2 border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.5)]">
+                            <h2 className="text-4xl font-pixel-bold text-red-500">CONNECTION_LOST</h2>
+                            <div className="font-pixel text-xl text-purple-300">SCORE: {score}</div>
+                            <div className="font-pixel text-sm text-zinc-500 mb-4">HIGH_SCORE: {highScore}</div>
+                            <button 
+                                onClick={startGame}
+                                className="px-6 py-2 bg-red-900/30 border-2 border-red-500 text-red-200 font-pixel hover:bg-red-500 hover:text-black transition-all"
+                            >
+                                RETRY_SEQUENCE()
+                            </button>
+                        </div>
+                        )}
+
+                        {gameStatus === 'PLAYING' && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 font-pixel text-purple-500/50 text-xl select-none pointer-events-none">
+                                SCORE: {score}
+                            </div>
+                        )}
+                    </div>
+                    </div>
+                );
+            };
+
+            // --- COMPONENT: CAD WINDOW FRAME ---
+            const WindowFrame = ({ id, title, icon: Icon, isOpen, isMinimized, onClose, onMinimize, onFocus, zIndex, position, onMouseDown, children }) => {
+                if (!isOpen) return null;
+
+                return (
+                    <div 
+                    className={`absolute w-[95%] h-[85%] md:w-[900px] md:h-[650px] bg-zinc-950/95 border-2 border-purple-600/50 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-opacity duration-200 ${isMinimized ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    style={{ 
+                        zIndex,
+                        left: position.x,
+                        top: position.y,
+                        transform: isMinimized ? 'scale(0.9)' : 'scale(1)'
+                    }}
+                    onMouseDown={onFocus}
+                    >
+                    <CornerBrackets color="border-purple-500" size="w-3 h-3" />
+
+                    <div 
+                        className="bg-zinc-900/80 h-10 flex items-center justify-between px-3 border-b-2 border-purple-600/30 select-none cursor-move group active:cursor-grabbing relative overflow-hidden"
+                        onMouseDown={(e) => onMouseDown(e, id)}
+                    >
+                        <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#c084fc_10px,#c084fc_11px)]"></div>
+
+                        <div className="flex items-center gap-3 text-purple-500 font-pixel-bold text-xs tracking-wider relative z-10 shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                        <Icon size={16} strokeWidth={2.5} />
+                        <span className="uppercase">{title}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 relative z-10">
+                        <button onClick={(e) => { e.stopPropagation(); onMinimize(); }} className="w-6 h-6 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-purple-500 border-2 border-purple-600/50 hover:border-purple-500 transition-all">
+                            <Minus size={12} strokeWidth={3} />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="w-6 h-6 flex items-center justify-center bg-zinc-900 hover:bg-red-900/30 text-red-500 border-2 border-red-900/50 hover:border-red-500 transition-all">
+                            <X size={12} strokeWidth={3} />
+                        </button>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-1 overflow-hidden relative">
+                        <div className="w-8 bg-zinc-950 border-r-2 border-zinc-800/50 hidden md:flex flex-col items-center py-2 gap-12 text-[10px] text-purple-600/30 font-pixel select-none z-10">
+                        {[...Array(8)].map((_, i) => <span key={i} className="rotate-90 origin-center whitespace-nowrap">0x{i}F</span>)}
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto bg-zinc-950 relative scrollbar-thin scrollbar-thumb-purple-600/50 scrollbar-track-zinc-900 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                            <div className="absolute inset-0 pointer-events-none opacity-[0.08]"
+                                style={{ backgroundImage: 'linear-gradient(#c084fc 1px, transparent 1px), linear-gradient(90deg, #c084fc 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
+                            </div>
+                            
+                            <div className="relative z-10 p-6 min-h-full pb-20 font-pixel text-zinc-300 leading-relaxed cursor-text">
+                                {children}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-8 bg-zinc-900/80 border-t-2 border-purple-600/30 flex items-center px-4 justify-between text-[10px] font-pixel text-purple-600/70 select-none relative">
+                        <div className="flex gap-6">
+                            <span>MEM: 64KB OK</span>
+                            <span>GRID: ACTIVE</span>
+                            <span className="hidden sm:inline">X:{Math.round(position.x)} Y:{Math.round(position.y)}</span>
+                        </div>
+                        <div className="uppercase animate-pulse flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_5px_#a855f7]"></div>
+                            SYS_READY
+                        </div>
+                    </div>
+                    </div>
+                );
+            };
+
+            // --- COMPONENT: TOOL ICON ---
+            const ToolIcon = ({ label, icon: Icon, onClick, active, shadowDirection = 'down', className = '' }) => {
+                const shadowClass = shadowDirection === 'up' 
+                    ? 'shadow-[0_-4px_0px_rgba(147,51,234,0.2)] hover:shadow-[0_0_15px_rgba(147,51,234,0.4)] hover:translate-y-[-2px]'
+                    : 'shadow-[0_4px_0px_rgba(147,51,234,0.2)] hover:shadow-[0_0_15px_rgba(147,51,234,0.4)] hover:translate-y-[2px]';
+                    
+                const activeShadowClass = shadowDirection === 'up'
+                    ? 'shadow-[0_0_10px_rgba(192,132,252,0.5)] translate-y-[-2px] border-purple-400'
+                    : 'shadow-[0_0_10px_rgba(192,132,252,0.5)] translate-y-[2px] border-purple-400';
+
+                return (
+                    <button 
+                        onClick={onClick}
+                        className={`group relative flex items-center justify-center w-12 h-12 transition-all duration-200 border-2 border-zinc-700 bg-zinc-900/80 cursor-pointer
+                            ${active 
+                                ? `text-purple-400 ${activeShadowClass}` 
+                                : `text-zinc-500 hover:text-purple-400 hover:border-purple-500/50 ${shadowClass}`
+                            }
+                            ${className}
+                        `}
+                        title={label}
+                    >
+                        <Icon size={20} strokeWidth={2} />
+                        
+                        <div className="absolute left-full ml-5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                            <div className="relative bg-black/90 text-purple-500 text-[10px] px-3 py-1 border-2 border-purple-600 font-pixel-bold uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.2)] whitespace-nowrap">
+                                <CornerBrackets color="border-purple-600" size="w-1.5 h-1.5" />
+                                <span className="relative z-10">&gt;&gt; {label}</span>
+                            </div>
+                            <div className="absolute top-1/2 right-full w-3 h-[2px] bg-purple-600 transform -translate-y-1/2"></div>
+                        </div>
+                    </button>
+                );
+            };
+
+            // --- WINDOW CONTENTS ---
+
+            const SkillBar = ({ skill }) => {
+                const [load, setLoad] = useState(0);
+                const [overclocked, setOverclocked] = useState(false);
+                
+                useEffect(() => {
+                    const timeout = setTimeout(() => setLoad(skill.level), 300);
+                    return () => clearTimeout(timeout);
+                }, [skill.level]);
+
+                const triggerOverclock = () => {
+                    setOverclocked(true);
+                    setTimeout(() => setOverclocked(false), 2000);
+                }
+
+                return (
+                    <div className="group mb-4 last:mb-0 cursor-pointer select-none" onClick={triggerOverclock}>
+                        <div className="flex justify-between text-xs text-zinc-500 mb-1 font-pixel-bold">
+                        <span className={`transition-colors flex items-center gap-2 ${overclocked ? 'text-red-500' : 'group-hover:text-purple-400'}`}>
+                            <span className={`w-1 h-1 rounded-full ${overclocked ? 'bg-red-500 animate-ping' : 'bg-purple-600'}`}></span>
+                            {skill.name}
+                        </span>
+                        <span className={`font-pixel ${overclocked ? 'text-red-500 animate-pulse' : 'text-purple-600'}`}>
+                            {overclocked ? 'WARNING: OVERLOAD' : `${load}%`}
+                        </span>
+                        </div>
+                        <div className={`flex gap-[2px] h-3 p-[2px] border-2 bg-black/50 relative transition-colors ${overclocked ? 'border-red-900/80' : 'border-zinc-800'}`}>
+                        <div className={`absolute -left-[2px] -top-[2px] w-1 h-1 border-t-2 border-l-2 ${overclocked ? 'border-red-500' : 'border-zinc-600'}`}></div>
+                        <div className={`absolute -right-[2px] -bottom-[2px] w-1 h-1 border-b-2 border-r-2 ${overclocked ? 'border-red-500' : 'border-zinc-600'}`}></div>
+                        
+                        {[...Array(10)].map((_, i) => (
+                            <div 
+                                key={i} 
+                                className={`flex-1 transition-all duration-150 ${
+                                    (i * 10) < (overclocked ? 100 : load) 
+                                        ? (overclocked ? 'bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.9)]' : 'bg-purple-500 shadow-[0_0_5px_rgba(168,85,247,0.5)]') 
+                                        : 'bg-zinc-900/50'
+                                }`}
+                            ></div>
+                        ))}
+                        </div>
+                    </div>
+                )
+            }
+
+            const AboutContent = () => (
+                <div className="space-y-10 min-h-full flex flex-col justify-start pt-4 max-w-4xl mx-auto relative">
+                    <div className="flex flex-col md:flex-row gap-12 items-start justify-center relative z-10">
+                    <div className="w-full md:w-56 shrink-0 relative group">
+                        <div className="absolute -inset-1 bg-purple-600/20 blur-sm group-hover:bg-purple-600/30 transition-all"></div>
+                        <div className="aspect-[3/4] bg-black border-2 border-purple-600/50 relative overflow-hidden">
+                            <CornerBrackets />
+                            <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] z-10 pointer-events-none opacity-50"></div>
+                            <User size={64} className="text-purple-600/80 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                            <div className="absolute inset-0 opacity-10 font-pixel text-[8px] leading-none overflow-hidden whitespace-pre-wrap break-all text-purple-500">
+                                {Array(500).fill('01').join(' ')}
+                            </div>
+                            <div className="absolute bottom-0 w-full bg-purple-900/20 border-t-2 border-purple-600/50 p-2 backdrop-blur-sm z-20">
+                                <div className="text-[10px] text-purple-500 font-pixel-bold">ID: GEVIN_ZHU</div>
+                                <div className="text-[8px] text-zinc-500">CLASS: ARCHITECT</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1">
+                        <h1 className="text-2xl md:text-4xl text-purple-500 font-pixel-bold mb-4 leading-tight drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                            {PERSONAL_INFO.name}
+                        </h1>
+                        <div className="inline-flex items-center gap-2 bg-purple-900/20 border-2 border-purple-600/30 px-3 py-1 text-xs font-pixel-bold text-purple-200 mb-6">
+                        <span className="w-2 h-2 bg-purple-500 animate-pulse rounded-full"></span>
+                        {PERSONAL_INFO.title}
+                        </div>
+                        
+                        <p className="text-zinc-300 text-lg md:text-xl leading-8 border-l-4 border-purple-600/30 pl-6 mb-8 relative">
+                        <span className="absolute -left-[6px] top-0 w-2 h-2 bg-purple-600/50"></span>
+                        {PERSONAL_INFO.about}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-4 justify-end">
+                        <a href={PERSONAL_INFO.social.linkedin} target="_blank" rel="noopener noreferrer" className="relative group px-6 py-3 bg-zinc-900 border-2 border-zinc-700 hover:border-purple-500 text-zinc-400 hover:text-purple-400 text-xs font-pixel-bold uppercase transition-all overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="flex items-center gap-2 relative z-10">
+                                <RefreshCw size={14} className="hidden" /> 
+                                <span>LINKEDIN_UPLINK</span>
+                            </div>
+                        </a>
+                        <a href={PERSONAL_INFO.social.instagram} target="_blank" rel="noopener noreferrer" className="relative group px-6 py-3 bg-zinc-900 border-2 border-zinc-700 hover:border-purple-500 text-zinc-400 hover:text-purple-400 text-xs font-pixel-bold uppercase transition-all overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="flex items-center gap-2 relative z-10">
+                                <Instagram size={14} />
+                                <span>INSTA_FEED</span>
+                            </div>
+                        </a>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div className="border-t-2 border-purple-600/20 pt-8 pb-8 relative">
+                    <div className="absolute top-[-8px] left-1/2 -translate-x-1/2 bg-zinc-900 px-2 text-[10px] text-purple-700">SYS_DIAGNOSTICS</div>
+                    <div className="flex items-center gap-3 mb-6">
+                        <Activity size={18} className="text-purple-600" />
+                        <span className="text-purple-600 font-pixel-bold text-sm">PERFORMANCE METRICS</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                        {SKILLS.map((skill, i) => (
+                            <SkillBar key={i} skill={skill} />
+                        ))}
+                    </div>
+                    </div>
+                </div>
+            );
+
+            const ExperienceContent = () => (
+                <div className="space-y-12 pl-4">
+                    <div className="relative border-l-2 border-dashed border-purple-600/30 ml-3 md:ml-6 space-y-12 py-2">
+                        {EXPERIENCE.map((job, i) => (
+                        <div key={i} className="relative pl-8 md:pl-12 group">
+                            <div className="absolute -left-[6px] top-1 w-3 h-3 bg-zinc-900 border-2 border-purple-600 group-hover:bg-purple-500 group-hover:shadow-[0_0_10px_#a855f7] transition-all duration-300 rounded-sm"></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2">
+                            <h4 className="text-xl text-zinc-100 font-pixel-bold group-hover:text-purple-400 transition-colors tracking-wide">{job.role}</h4>
+                            <span className="text-xs bg-purple-900/10 text-purple-600/80 px-2 py-1 border-2 border-purple-600/20 mt-2 sm:mt-0 font-pixel">{job.period}</span>
+                            </div>
+                            <div className="text-purple-600 text-sm font-pixel-bold mb-4 flex items-center gap-2">
+                                <Briefcase size={14} /> 
+                                <span className="opacity-50">@</span>
+                                {job.company.toUpperCase()}
+                            </div>
+                            <div className="relative bg-zinc-900/40 p-4 border-2 border-zinc-800 group-hover:border-purple-600/30 transition-colors">
+                                <CornerBrackets color="border-zinc-700 group-hover:border-purple-600/50" size="w-1.5 h-1.5" />
+                                <p className="text-zinc-400 text-base leading-7 font-pixel relative z-10">
+                                    {job.description}
+                                </p>
+                            </div>
+                        </div>
+                        ))}
+                    </div>
+
+                    <div>
+                        <div className="flex items-center gap-3 mb-6 border-b-2 border-purple-600/20 pb-2">
+                            <Cpu size={18} className="text-purple-600" />
+                            <span className="text-purple-600 font-pixel-bold text-sm">FIRMWARE UPDATES [EDU]</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {EDUCATION.map((edu, i) => (
+                            <div key={i} className="bg-zinc-900/60 p-4 border-2 border-zinc-800 hover:border-purple-500/50 transition-all relative group overflow-hidden">
+                                <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity">
+                                    <GraduationCap size={16} className="text-purple-500" />
+                                </div>
+                                <h4 className="text-zinc-200 font-pixel-bold mb-1 text-sm">{edu.school}</h4>
+                                <p className="text-xs text-purple-600 mb-3">{edu.degree}</p>
+                                <div className="text-zinc-500 text-[10px] border-t-2 border-zinc-800 pt-2 mt-2 font-pixel">
+                                    STATUS: <span className="text-zinc-400">{edu.details}</span>
+                                </div>
+                            </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const ProjectsContent = () => (
+                <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between mb-8 bg-black/40 p-2 border-2 border-zinc-800">
+                    <div className="flex items-center gap-2 text-purple-600 text-xs font-pixel-bold">
+                        <Folder size={14} />
+                        <span>ROOT/PROJECTS/</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 font-pixel">
+                        INDEX: {PROJECTS.length} // FREE_SPACE: 12%
+                    </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
+                    {PROJECTS.map((project, i) => (
+                        <div key={i} className="group relative bg-zinc-900/60 border-2 border-zinc-800 hover:border-purple-600/50 transition-colors p-6 flex flex-col md:flex-row gap-6">
+                        <CornerBrackets color="border-zinc-800 group-hover:border-purple-600/50" />
+                        <div className="w-full md:w-32 h-24 bg-black/50 border-2 border-zinc-800 flex flex-col items-center justify-center gap-2 group-hover:bg-purple-900/10 group-hover:border-purple-600/30 transition-all">
+                            <Layers size={24} className="text-zinc-600 group-hover:text-purple-500 transition-colors" />
+                            <span className="text-[9px] font-pixel-bold text-zinc-500 group-hover:text-purple-600">{project.type}</span>
+                            <div className="flex gap-1 mt-1">
+                                <div className="w-1 h-1 bg-zinc-700 rounded-full group-hover:bg-purple-500"></div>
+                                <div className="w-1 h-1 bg-zinc-700 rounded-full group-hover:bg-purple-500 delay-75"></div>
+                                <div className="w-1 h-1 bg-zinc-700 rounded-full group-hover:bg-purple-500 delay-150"></div>
+                            </div>
+                        </div>
+                        <div className="flex-1 relative z-10">
+                            <div className="flex justify-between items-start mb-2 border-b-2 border-dashed border-zinc-800 pb-2">
+                                <h4 className="text-lg text-zinc-200 font-pixel-bold group-hover:text-purple-400 transition-colors">{project.title}</h4>
+                                <span className="text-[9px] text-purple-700 font-pixel border-2 border-purple-900/30 px-1">{project.coords}</span>
+                            </div>
+                            <p className="text-sm text-zinc-400 mb-4 leading-6 font-pixel">{project.desc}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {project.tags.map(tag => (
+                                <span key={tag} className="text-[10px] px-2 py-1 bg-zinc-950 text-zinc-500 border-2 border-zinc-800 uppercase tracking-wider group-hover:text-purple-600/70 group-hover:border-purple-900/30 transition-colors">
+                                    {tag}
+                                </span>
+                                ))}
+                            </div>
+                        </div>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+            );
+
+            const TerminalContent = () => (
+                <div className="font-pixel text-sm text-zinc-300 h-full flex flex-col bg-black/80 p-4 border-2 border-zinc-800 relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-5 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,#22c55e_2px,#22c55e_4px)] pointer-events-none"></div>
+                    <div className="mb-4 text-zinc-500 border-b-2 border-zinc-800 pb-2">
+                        Atlas_OS [v64.0] <br/>
+                        (c) Gevin Zhu Industries.
+                    </div>
+                    <div className="flex-1 space-y-3 relative z-10">
+                        <div className="flex gap-2">
+                            <span className="text-purple-500">user@atlas:~$</span> 
+                            <span>load_profile --verbose</span>
+                        </div>
+                        <div className="pl-4 text-zinc-400 border-l-2 border-zinc-800">
+                            [OK] Loading assets...<br/>
+                            [OK] Mounting skills...<br/>
+                            [OK] Overclocking GPU...<br/>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                            <span className="text-purple-500">user@atlas:~$</span> 
+                            <span>check_status</span>
+                        </div>
+                        <div className="pl-4 text-zinc-400 border-l-2 border-zinc-800">
+                            <span className="text-green-500 font-bold">ONLINE</span> - All systems nominal.<br/>
+                            <span className="text-purple-600 flex items-center gap-2 mt-1">[WARN] Coffee reserves critical. <AlertTriangle size={12}/></span>
+                        </div>
+                        <div className="mt-4 flex items-center gap-2">
+                            <span className="text-purple-500">user@atlas:~$</span> 
+                            <span className="w-2.5 h-5 bg-purple-500 animate-pulse block shadow-[0_0_5px_#a855f7]"></span>
+                        </div>
+                    </div>
+                </div>
+            )
+
+            const ContactContent = () => (
+                <div className="flex flex-col h-full items-center justify-center p-8 text-center relative">
+                    <div className="bg-zinc-900/80 p-10 border-2 border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] max-w-lg w-full relative backdrop-blur-sm">
+                        <CornerBrackets color="border-purple-600/50" />
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-zinc-950 px-4 text-[10px] text-purple-600 tracking-widest border-2 border-zinc-800">SECURE_LINK</div>
+                        <Monitor size={48} className="text-purple-600 mx-auto mb-6 drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]" strokeWidth={1.5} />
+                        <h2 className="text-2xl font-pixel-bold text-zinc-100 mb-4 tracking-wide">OPEN CHANNEL?</h2>
+                        <p className="text-zinc-400 mb-8 font-pixel text-sm leading-6 border-t-2 border-b-2 border-zinc-800 py-4">
+                            I'm currently accepting new quests in UX Architecture and Technical Design.
+                        </p>
+                        <a href={`mailto:${PERSONAL_INFO.email}`} className="group relative inline-block w-full py-4 bg-purple-900/10 hover:bg-purple-600 text-purple-500 hover:text-black border-2 border-purple-600 transition-all overflow-hidden">
+                            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(0,0,0,0.1)_5px,rgba(0,0,0,0.1)_10px)]"></div>
+                            <div className="flex items-center justify-center gap-2 relative z-10 font-pixel-bold text-sm uppercase">
+                                <Wifi size={16} className="animate-pulse" />
+                                <span>TRANSMIT_MESSAGE()</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            )
+
+            // --- MAIN APP COMPONENT ---
+            function App() {
+                const [booting, setBooting] = useState(true);
+                const [crtEnabled, setCrtEnabled] = useState(true);
+
+                // Initial window positions
+                const [windows, setWindows] = useState([
+                    { id: 'about', title: 'USER_PROFILE.EXE', icon: User, isOpen: true, isMinimized: false, zIndex: 1, position: {x: 100, y: 50}, content: <AboutContent /> },
+                    { id: 'projects', title: 'PROJECTS.DIR', icon: Layers, isOpen: false, isMinimized: false, zIndex: 0, position: {x: 120, y: 70}, content: <ProjectsContent /> },
+                    { id: 'experience', title: 'LOGS.TXT', icon: FileText, isOpen: false, isMinimized: false, zIndex: 0, position: {x: 140, y: 90}, content: <ExperienceContent /> },
+                    { id: 'terminal', title: 'CMD_PROMPT', icon: Terminal, isOpen: false, isMinimized: false, zIndex: 0, position: {x: 160, y: 110}, content: <TerminalContent /> },
+                    { id: 'contact', title: 'MAIL_CLIENT', icon: Mail, isOpen: false, isMinimized: false, zIndex: 0, position: {x: 180, y: 130}, content: <ContactContent /> },
+                ]);
+
+                const [dragState, setDragState] = useState({ isDragging: false, windowId: null, offsetX: 0, offsetY: 0 });
+
+                const handleSystemReset = () => {
+                    setWindows(prev => prev.map((w, i) => ({ ...w, isOpen: false, isMinimized: false, zIndex: 0, position: { x: 100 + (i * 20), y: 50 + (i * 20) } })));
+                };
+
+                const toggleWindow = (id) => {
+                    setWindows(prev => prev.map(w => {
+                        if (w.id === id) {
+                            const maxZ = Math.max(...prev.map(p => p.zIndex));
+                            return { ...w, isOpen: true, isMinimized: false, zIndex: maxZ + 1 };
+                        }
+                        return w;
+                    }));
+                };
+
+                const closeWindow = (id) => setWindows(prev => prev.map(w => w.id === id ? { ...w, isOpen: false } : w));
+                const minimizeWindow = (id) => setWindows(prev => prev.map(w => w.id === id ? { ...w, isMinimized: true } : w));
+                const focusWindow = (id) => setWindows(prev => {
+                    const maxZ = Math.max(...prev.map(p => p.zIndex));
+                    return prev.map(w => w.id === id ? { ...w, zIndex: maxZ + 1 } : w);
+                });
+
+                const handleMouseDown = (e, id) => {
+                    const win = windows.find(w => w.id === id);
+                    if(!win) return;
+                    focusWindow(id);
+                    setDragState({ isDragging: true, windowId: id, offsetX: e.clientX - win.position.x, offsetY: e.clientY - win.position.y });
+                };
+
+                const handleMouseMove = (e) => {
+                    if(!dragState.isDragging) return;
+                    setWindows(prev => prev.map(w => {
+                        if(w.id === dragState.windowId) {
+                            return { ...w, position: { x: e.clientX - dragState.offsetX, y: e.clientY - dragState.offsetY } }
+                        }
+                        return w;
+                    }))
+                };
+
+                const handleMouseUp = () => setDragState({ isDragging: false, windowId: null, offsetX: 0, offsetY: 0 });
+                
+                const activeWindowId = windows.sort((a,b) => b.zIndex - a.zIndex).find(w => w.isOpen && !w.isMinimized)?.id;
+
+                const renderContent = (id) => {
+                    switch(id) {
+                        case 'about': return <AboutContent />;
+                        case 'projects': return <ProjectsContent />;
+                        case 'experience': return <ExperienceContent />;
+                        case 'terminal': return <TerminalContent />;
+                        case 'contact': return <ContactContent />;
+                        default: return null;
+                    }
+                };
+
+                return (
+                    <div className="h-screen w-screen bg-zinc-950 text-zinc-300 overflow-hidden select-none relative flex font-pixel"
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                    >
+                        {booting && <BootScreen onComplete={() => setBooting(false)} />}
+                        {crtEnabled && <CRTOverlay />}
+
+                        <div className="w-20 h-full bg-zinc-950 border-r-2 border-zinc-800 z-50 flex flex-col items-center justify-center py-6 shadow-[5px_0_20px_rgba(0,0,0,0.8)] relative">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-zinc-900 via-purple-900/20 to-zinc-900"></div>
+                            <div className="flex flex-col items-center justify-center w-full gap-4 relative z-10">
+                                <ToolIcon label="RESET" icon={Grid} onClick={handleSystemReset} active={false} shadowDirection="down" />
+                                <div className="w-8 h-[2px] bg-zinc-800"></div> 
+                                <ToolIcon label="BIO" icon={User} onClick={() => toggleWindow('about')} active={activeWindowId === 'about'} shadowDirection="down" />
+                                <ToolIcon label="WORK" icon={Folder} onClick={() => toggleWindow('projects')} active={activeWindowId === 'projects'} shadowDirection="down" />
+                                <ToolIcon label="XP" icon={FileText} onClick={() => toggleWindow('experience')} active={activeWindowId === 'experience'} shadowDirection="down" />
+                                <ToolIcon label="CMD" icon={Terminal} onClick={() => toggleWindow('terminal')} active={activeWindowId === 'terminal'} shadowDirection="down" />
+                                <ToolIcon label="MSG" icon={Mail} onClick={() => toggleWindow('contact')} active={activeWindowId === 'contact'} shadowDirection="down" />
+                                <div className="w-8 h-[2px] bg-zinc-800"></div>
+                                <ToolIcon 
+                                    label="CRT" 
+                                    icon={Power} 
+                                    onClick={() => setCrtEnabled(!crtEnabled)} 
+                                    active={crtEnabled} 
+                                    shadowDirection="down" 
+                                    className={crtEnabled 
+                                        ? "!border-green-500 !text-green-500 hover:!text-green-400 hover:!border-green-400 hover:shadow-[0_0_10px_#22c55e]" 
+                                        : "!border-red-600 !text-red-600 !shadow-[0_4px_0px_rgba(220,38,38,0.3)] hover:!border-red-500 hover:!text-red-500 hover:shadow-[0_0_10px_#dc2626]"
+                                    }
+                                />
+                                <button 
+                                    onClick={() => window.open(PERSONAL_INFO.social.resume, '_blank')}
+                                    className="group relative flex flex-col items-center justify-center w-12 h-12 border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-600 hover:text-purple-500 transition-all cursor-pointer shadow-[0_4px_0px_rgba(147,51,234,0.3)] hover:shadow-[0_0_15px_rgba(147,51,234,0.4)] hover:translate-y-[2px] hover:border-purple-600"
+                                    title="DOWNLOAD RESUME"
+                                >
+                                    <HardDrive size={20} />
+                                    <span className="text-[8px] font-pixel-bold mt-1">PDF</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 relative bg-black overflow-hidden">
+                            <div className="absolute inset-0 pointer-events-none opacity-20"
+                                style={{ 
+                                    backgroundImage: `linear-gradient(to right, #333 1px, transparent 1px),
+                                                    linear-gradient(to bottom, #333 1px, transparent 1px),
+                                                    radial-gradient(circle, rgba(168,85,247,0.1) 1px, transparent 1px)`, 
+                                    backgroundSize: '60px 60px, 60px 60px, 10px 10px' 
+                                }}>
+                            </div>
+                            <div className="absolute top-8 right-8 text-zinc-800 font-pixel-bold text-8xl opacity-10 pointer-events-none select-none tracking-tighter">ATLAS OS</div>
+                            <div className="absolute bottom-8 left-8 text-zinc-800 font-pixel text-sm opacity-40 pointer-events-none">
+                                SYS_VER: 64.0.1 <br/> 
+                                SECTOR: 07-G
+                            </div>
+                            <div className="absolute top-4 right-6 font-pixel text-lg text-purple-600/50 text-right hidden md:block bg-black/50 px-4 py-2 border-2 border-purple-900/30 backdrop-blur-sm">
+                                <div className="flex gap-4">
+                                    <span className="text-green-500/70">NET: SECURE</span>
+                                    <span>MEM: 640K</span>
+                                </div>
+                            </div>
+
+                            {windows.map(w => (
+                                <WindowFrame
+                                    key={w.id}
+                                    {...w}
+                                    onClose={() => closeWindow(w.id)}
+                                    onMinimize={() => minimizeWindow(w.id)}
+                                    onFocus={() => focusWindow(w.id)}
+                                    onMouseDown={handleMouseDown}
+                                    position={w.position}
+                                >
+                                    {renderContent(w.id)}
+                                </WindowFrame>
+                            ))}
+
+                            {!windows.some(w => w.isOpen && !w.isMinimized) && (
+                                <div className="absolute inset-0 z-0">
+                                    <SnakeGame />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Mount the app
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        } catch (err) {
+            console.error(err);
+            const el = document.getElementById('error-display');
+            el.style.display = 'block';
+            el.innerHTML = `<strong>CRITICAL FAILURE:</strong><br/>${err.message}<br/><br/>See console for stack trace.`;
+        }
+    </script>
+</body>
+</html>
