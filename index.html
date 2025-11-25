@@ -992,9 +992,10 @@
                         {gameStatus === 'PLAYING' && (
                             <React.Fragment>
                                 {/* Score at Top */}
-                                {/* FIX: Reduced text size on mobile from text-4xl to text-2xl */}
-                                <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-20 select-none">
-                                    <div className="font-pixel-bold text-retro-accent text-2xl sm:text-4xl drop-shadow-[0_0_10px_var(--accent-dim)]">
+                                {/* FIX: Move score to top left of the game area, slightly offset (p-4) */}
+                                <div className="absolute top-[3.5rem] left-4 flex flex-col items-start pointer-events-none z-20 select-none sm:top-12 sm:left-1/2 sm:-translate-x-1/2">
+                                    <div className="font-pixel text-retro-dim text-xs sm:text-base">SCORE:</div>
+                                    <div className="font-pixel-bold text-retro-accent text-xl sm:text-4xl drop-shadow-[0_0_10px_var(--accent-dim)]">
                                         {score}
                                     </div>
                                 </div>
@@ -1844,21 +1845,15 @@
                         {crtEnabled && !a11ySettings.clean && <CRTOverlay />}
 
                         {/* MOBILE/TASKBAR HEADER (Visible on mobile, hidden on sm+) */}
-                        {/* FIX: Removed YILIN_ZHU title and switched to justify-end */}
-                        <div className={`fixed top-0 left-0 right-0 h-12 bg-retro-panel border-b-2 border-retro-border z-50 flex justify-end items-center px-2 sm:hidden transition-opacity duration-500 ${appOpacityClass}`}>
-                            <div className="flex gap-1">
-                                {utilItems.map(item => (
-                                    <ToolIcon 
-                                        key={item.id}
-                                        label={item.label}
-                                        icon={item.icon} 
-                                        onClick={item.toggle} 
-                                        active={item.active} 
-                                        shadowDirection="up" 
-                                        className={`w-8 h-8 !text-sm ${item.className}`}
-                                    />
-                                ))}
+                        {/* FIX: Removed YILIN_ZHU title and switched to justify-between, adding system info on the left */}
+                        <div className={`fixed top-0 left-0 right-0 h-12 bg-retro-panel border-b-2 border-retro-border z-50 flex justify-between items-center px-2 sm:hidden transition-opacity duration-500 ${appOpacityClass}`}>
+                            {/* FIX: Added system info on phone version (SYS_VER, SECTOR, TIME, NET, MEM) */}
+                            <div className="flex flex-col text-left font-pixel text-[0.55rem] text-retro-dim leading-tight">
+                                <span>{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')}</span>
+                                <span>{format64Bit('TIME:')} {currentTime.split(' | ')[0]}</span>
+                                <span className="text-retro-accent">{format64Bit('NET: SECURE')} | {format64Bit('MEM: 640K')}</span>
                             </div>
+                            {/* FIX: Removed utility buttons from here, leaving them only in the bottom bar */}
                         </div>
 
                         {/* DESKTOP SIDEBAR (w-20, hidden on sm/mobile) */}
@@ -1926,14 +1921,14 @@
                             {/* Background Grid - HIDE ALL BACKGROUND GRIDS/PATTERNS */}
                             <div className="absolute top-8 right-8 text-retro-dim font-pixel-bold text-8xl opacity-10 pointer-events-none select-none tracking-tighter hidden sm:block">{format64Bit('ATLAS OS')}</div>
                             
-                            {/* Bottom Left System Info */}
+                            {/* Bottom Left System Info (Desktop only) */}
                             <div className="absolute bottom-8 left-8 text-retro-accent font-pixel text-sm pointer-events-none hidden sm:block">
                                 {format64Bit('SYS_VER: 64.0.1')} <br/> 
                                 {format64Bit('SECTOR: 07-G')} <br/>
                                 <span className="text-sm">{format64Bit('TIME:')} {currentTime}</span>
                             </div>
                             
-                            {/* Top Right Status */}
+                            {/* Top Right Status (Desktop only) */}
                             <div className="absolute top-8 right-8 text-retro-accent font-pixel text-sm text-right pointer-events-none select-none hidden sm:block">
                                 {format64Bit('NET: SECURE')} <br/>
                                 {format64Bit('MEM: 640K')}
@@ -1967,11 +1962,11 @@
                             {/* Window Taskbar (Desktop only) - Removed based on user request */}
                             
                             {/* MOBILE NAVIGATION BAR (Visible on mobile) */}
-                            {/* FIX: Changed button styling to match ToolIcon aesthetic */}
-                            <div className="fixed bottom-0 left-0 right-0 h-16 bg-retro-panel border-t-2 border-retro-border z-50 flex justify-around items-center px-2 sm:hidden">
+                            {/* FIX: Consolidate navigation and utility buttons here */}
+                            <div className="fixed bottom-0 left-0 right-0 h-16 bg-retro-panel border-t-2 border-retro-border z-50 flex justify-around items-center px-1 sm:hidden">
                                 {taskbarItems.map(item => {
                                     const isActive = activeWindowId === item.id;
-                                    const baseClasses = 'flex flex-col items-center justify-center w-[3.5rem] h-[3.5rem] transition-all duration-200 border-2 bg-retro-panel relative';
+                                    const baseClasses = 'flex flex-col items-center justify-center w-[3rem] h-[3rem] transition-all duration-200 border-2 bg-retro-panel relative';
                                     const shadowClass = 'shadow-[0_-4px_0px_var(--accent-dim)] hover:shadow-[0_0_15px_var(--accent-glow)] hover:translate-y-[-2px]';
                                     const activeClasses = 'text-retro-accent border-retro-accent shadow-[0_0_10px_var(--accent-glow)] translate-y-[-2px]';
                                     const inactiveClasses = 'text-retro-dim border-retro-border hover:text-retro-accent hover:border-retro-accent ' + shadowClass;
@@ -1983,10 +1978,25 @@
                                             className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
                                         >
                                             <item.icon size="1.25rem" />
-                                            <span className="text-[0.5rem] font-pixel-bold mt-1 uppercase leading-none">{format64Bit(item.title.split('.')[0])}</span>
+                                            {/* FIX 1: Removed text label */}
                                         </button>
                                     );
                                 })}
+
+                                {/* FIX 3: Move utility buttons to the bottom bar */}
+                                <div className="h-full border-l-2 border-retro-border/50 mx-1"></div>
+
+                                {utilItems.map(item => (
+                                    <ToolIcon 
+                                        key={item.id}
+                                        label={item.label}
+                                        icon={item.icon} 
+                                        onClick={item.toggle} 
+                                        active={item.active} 
+                                        shadowDirection="up" 
+                                        className={`w-[3rem] h-[3rem] !text-sm ${item.className}`}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
