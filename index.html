@@ -1122,7 +1122,8 @@
             // --- COMPONENT: TAB SELECT MENU (NEW) ---
             const TabSelectMenu = React.memo(({ tabs, closeMenu, toggleWindow, activeWindowId }) => {
                 return (
-                    <div className="fixed left-0 right-0 top-12 bottom-16 w-full max-w-full bg-retro-panel border-2 border-retro-accent p-4 shadow-[0_0_20px_rgba(0,0,0,0.5)] z-[100] font-pixel text-xs overflow-hidden md:absolute md:w-64 md:bottom-4 md:left-24 md:top-auto">
+                    // FIX: Changed bottom constraint to h-14 (56px) to match new footer height
+                    <div className="fixed left-0 right-0 top-12 bottom-14 w-full max-w-full bg-retro-panel border-2 border-retro-accent p-4 shadow-[0_0_20px_rgba(0,0,0,0.5)] z-[100] font-pixel text-xs overflow-hidden md:absolute md:w-64 md:bottom-4 md:left-24 md:top-auto">
                         <CornerBrackets color="border-retro-accent" />
                         
                         <div className="flex justify-between items-center mb-4 border-b border-retro-border pb-2 sticky top-0 bg-retro-panel z-10">
@@ -2016,20 +2017,14 @@
                         {crtEnabled && !a11ySettings.clean && <CRTOverlay />}
 
                         {/* MOBILE/TASKBAR HEADER (Visible on mobile, hidden on sm+) */}
-                        {/* FIX: Removed YILIN_ZHU title and switched to justify-between, adding system info on the left */}
                         <div className={`fixed top-0 left-0 right-0 h-12 bg-retro-panel border-b-2 border-retro-border z-50 flex justify-between items-center px-2 sm:hidden transition-opacity duration-500 ${appOpacityClass}`}>
-                            {/* Left Side: SYS_VER and TIME - Now 1 line each, slightly larger text */}
-                            <div className="flex flex-col text-left font-pixel text-[0.6rem] text-retro-dim justify-center leading-none h-full">
-                                {/* Consolidated SYS_VER and SEC into one line */}
-                                <span className="h-1/2 flex items-end">{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')}</span>
-                                {/* TIME on the bottom half */}
-                                <span className="h-1/2 flex items-start">{format64Bit('TIME:')} {currentTime.split(' | ')[0]}</span>
+                            {/* FIX: Left Side - SYS_VER + SEC + TIME on one line */}
+                            <div className="flex items-center text-left font-pixel text-[0.7rem] text-retro-dim h-full">
+                                <span>{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')} | {currentTime.split(' | ')[0]}</span>
                             </div>
-                            {/* Right Side: NET and MEM status - Now 1 line each, slightly larger text */}
-                            <div className="flex flex-col text-right font-pixel text-[0.6rem] text-retro-dim justify-center leading-none h-full">
-                                {/* Consolidated NET and MEM into one line, using ACCENT color */}
-                                <span className="text-retro-accent h-1/2 flex items-end">{format64Bit('NET: SECURE')}</span>
-                                <span className="text-retro-accent h-1/2 flex items-start">{format64Bit('MEM: 640K')}</span>
+                            {/* FIX: Right Side - NET + MEM on one line */}
+                            <div className="flex items-center text-right font-pixel text-[0.7rem] text-retro-dim h-full">
+                                <span className="text-retro-accent">{format64Bit('NET: SECURE')} | {format64Bit('MEM: 640K')}</span>
                             </div>
                         </div>
 
