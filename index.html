@@ -233,7 +233,6 @@
 
 
                 // 6. Cleanup PIPE: Replace underscores around pipe with spaces to achieve the requested " | " style.
-                // This converts "_|_" back to " | "
                 result = result.replace(/_\|_/g, ' | ');
 
 
@@ -1683,14 +1682,28 @@
                     setGameResetKey(prev => prev + 1);
                 }, [setWindows, setGameResetKey]);
 
+                // FIX 1: Removed code that changed Z-Index and position on toggle to prevent order change.
                 const toggleWindow = useCallback((id) => {
-                    setWindows(prev => prev.map(w => {
-                        if (w.id === id) {
-                            const maxZ = Math.max(...prev.map(p => p.zIndex));
-                            return { ...w, isOpen: true, isMinimized: false, zIndex: maxZ + 1 };
-                        }
-                        return w;
-                    }));
+                    setWindows(prev => {
+                        const win = prev.find(w => w.id === id);
+                        if (!win) return prev;
+
+                        // Calculate max Z-index for focusing
+                        const maxZ = Math.max(...prev.map(p => p.zIndex));
+                        
+                        return prev.map(w => {
+                            if (w.id === id) {
+                                // Toggle window state, ensure it comes to front if opened
+                                return { 
+                                    ...w, 
+                                    isOpen: true, 
+                                    isMinimized: false, 
+                                    zIndex: maxZ + 1 
+                                };
+                            }
+                            return w;
+                        });
+                    });
                 }, [setWindows]);
 
                 const closeWindow = useCallback((id) => setWindows(prev => prev.map(w => w.id === id ? { ...w, isOpen: false } : w)), [setWindows]);
@@ -1820,6 +1833,8 @@
                     return classes;
                 };
 
+                // FIX 1: We still need to find the currently active window to apply focus (zIndex).
+                // We keep the logic that prioritizes the most recently focused window.
                 const activeWindowId = windowsState.sort((a,b) => b.zIndex - a.zIndex).find(w => w.isOpen && !w.isMinimized)?.id;
 
                 // --- CONTENT RENDERERS ---
@@ -1837,6 +1852,7 @@
                 };
                 
                 // Get list of navigation items for the Taskbar
+                // The order in which they appear here is the order in the mobile taskbar
                 const taskbarItems = windowsState.filter(w => ['about', 'projects', 'experience', 'contact'].includes(w.id));
                 const utilItems = [
                     { 
@@ -2015,7 +2031,8 @@
                                     const baseClasses = 'flex flex-col items-center justify-center w-[3rem] h-[3rem] transition-all duration-200 border-2 bg-retro-panel relative shadow-none hover:shadow-none hover:translate-y-0';
                                     
                                     // Active state: flat, borders/text in accent color
-                                    const activeClasses = 'text-retro-accent border-retro-accent';
+                                    // FIX 2: Removed border-retro-accent from activeClasses
+                                    const activeClasses = 'text-retro-accent border-retro-border';
                                     
                                     // Inactive state: flat, borders/text in dim color (or hover to accent)
                                     const inactiveClasses = 'text-retro-dim border-retro-border hover:text-retro-accent hover:border-retro-accent';
@@ -2024,6 +2041,8 @@
                                         <button
                                             key={item.id}
                                             onClick={() => toggleWindow(item.id)} 
+                                            // Ensure zIndex is applied based on the original data structure's zIndex
+                                            style={{ zIndex: item.zIndex }}
                                             className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
                                         >
                                             <item.icon size="1.25rem" />
