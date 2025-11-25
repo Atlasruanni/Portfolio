@@ -2019,12 +2019,14 @@
                         {/* MOBILE/TASKBAR HEADER (Visible on mobile, hidden on sm+) */}
                         <div className={`fixed top-0 left-0 right-0 h-12 bg-retro-panel border-b-2 border-retro-border z-50 flex justify-between items-center px-2 sm:hidden transition-opacity duration-500 ${appOpacityClass}`}>
                             {/* FIX: Left Side - SYS_VER + SEC + TIME on one line */}
-                            <div className="flex items-center text-left font-pixel text-[0.7rem] h-full text-retro-accent">
+                            {/* FIX: Increased font size to text-xs */}
+                            <div className="flex items-center text-left font-pixel text-xs h-full text-retro-accent">
                                 <span>{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')} | {currentTime.split(' | ')[0]}</span>
                             </div>
-                            {/* FIX: Right Side - NET + MEM on one line */}
-                            <div className="flex items-center text-right font-pixel text-[0.7rem] h-full text-retro-accent">
-                                <span>{format64Bit('NET: SECURE')} | {format64Bit('MEM: 640K')}</span>
+                            {/* FIX: Right Side - NET only on one line (removed MEM) */}
+                            {/* FIX: Increased font size to text-xs */}
+                            <div className="flex items-center text-right font-pixel text-xs h-full text-retro-accent">
+                                <span>{format64Bit('NET: SECURE')}</span>
                             </div>
                         </div>
 
@@ -2118,7 +2120,7 @@
                             </div>
                             
                             {/* Top Right Status (Desktop only) */}
-                            <div className="absolute top-8 right-8 text-retro-accent font-pixel text-sm text-right pointer-events-none select-none hidden sm:block">
+                            <div className="absolute top-8 right-8 text-retro-accent font-pixel text-sm text-right pointer-events-none hidden sm:block">
                                 {format64Bit('NET: SECURE')} <br/>
                                 {format64Bit('MEM: 640K')}
                             </div>
