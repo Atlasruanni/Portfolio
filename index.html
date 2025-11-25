@@ -1057,6 +1057,7 @@
                     : 'shadow-[0_0_10px_var(--accent-glow)] translate-y-[2px] border-retro-accent';
                 
                 // Define mobile classes to remove shadow and translation effects
+                // NOTE: We only want to remove the implicit base hover effects from the ToolIcon definition.
                 const mobileClasses = "shadow-none hover:shadow-none hover:translate-y-0";
 
                 // Base classes for the button
@@ -1068,20 +1069,26 @@
                 // Determine final hover classes for mobile/desktop
                 let finalHoverClasses = '';
                 if (isMobile) {
-                    // Mobile: Remove hover styles explicitly if they exist on the button
-                    finalHoverClasses = className.replace(/hover:!bg-[a-z]+-?\d*/g, '').replace(/hover:!text-[a-z]+-?\d*/g, '').replace(/hover:!border-[a-z]+-?\d*/g, '');
-                    // For mobile, the `className` only controls active state/non-hovered styles.
+                    // Mobile: Explicitly remove all hover and border classes.
+                    finalHoverClasses = className
+                        .replace(/hover:!bg-[a-z]+-?\d*/g, '')
+                        .replace(/hover:!text-[a-z]+-?\d*/g, '')
+                        .replace(/hover:!border-[a-z]+-?\d*/g, '')
+                        .replace(/border-2 border-retro-border/g, ''); // Ensure no border class leaks from desktop config
                 } else {
                     // Desktop: Apply the standard effects plus custom classes
                     finalHoverClasses = className;
                 }
 
+                // Check for generic hover classes that need to be suppressed on mobile
+                const baseHoverSuppression = isMobile ? 'hover:text-retro-dim hover:border-retro-border' : 'hover:text-retro-accent hover:border-retro-accent';
+                
 
                 const buttonClasses = `${baseClasses}
                     ${isMobile ? mobileClasses : borderClasses}
                     ${active 
                         ? `text-retro-accent ${isMobile ? 'shadow-none translate-y-0' : desktopActiveShadowClass}` 
-                        : `text-retro-dim hover:text-retro-accent hover:border-retro-accent ${isMobile ? mobileClasses : desktopShadowClass}`
+                        : `text-retro-dim ${isMobile ? '' : baseHoverSuppression} ${isMobile ? mobileClasses : desktopShadowClass}`
                     }
                     ${finalHoverClasses}
                 `;
@@ -2087,8 +2094,7 @@
                             <div className="fixed bottom-0 left-0 right-0 h-14 bg-retro-panel border-t-2 border-retro-border z-50 flex justify-around items-center px-1 sm:hidden">
                                 {taskbarItems.map(item => {
                                     const isActive = activeWindowId === item.id;
-                                    // Base classes for mobile buttons (no shadow/up-down effect, NO BORDER)
-                                    // FIX: Removed hover effects (`hover:*` classes) from inactive items for mobile
+                                    // Base classes for mobile buttons (no shadow/up-down effect, NO HOVER)
                                     const baseClasses = 'flex flex-col items-center justify-center w-[3rem] h-[3rem] transition-all duration-200 bg-retro-panel relative shadow-none hover:shadow-none hover:translate-y-0';
                                     
                                     // Active state: flat, borders/text in accent color
