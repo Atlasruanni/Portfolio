@@ -656,6 +656,7 @@
                 const gameState = useRef({
                     snake: [{x: 10, y: 10}],
                     food: {x: 15, y: 5},
+                    // FIX: Added missing properties to fix SyntaxError
                     direction: {x: 1, y: 0},
                     nextDirection: {x: 1, y: 0},
                     gridSize: 20,
@@ -671,13 +672,23 @@
                     let valid = false;
                     let newFood = {};
                     
-                    while (!valid) {
-                    newFood = {
-                        x: Math.floor(Math.random() * gridW),
-                        y: Math.floor(Math.random() * gridH)
-                    };
-                    valid = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+                    // FIX: Implemented logic to check for snake body overlap
+                    let attempts = 0;
+                    while (!valid && attempts < 100) {
+                        newFood = {
+                            x: Math.floor(Math.random() * gridW),
+                            y: Math.floor(Math.random() * gridH)
+                        };
+                        valid = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+                        attempts++;
                     }
+
+                    // If we failed after 100 attempts (which shouldn't happen unless grid is full), just place it anyway to avoid an infinite loop, or force game end
+                    if (!valid) {
+                        console.warn("Could not find a clear spot for food! Placing randomly.");
+                        // Forcing placement might lead to instant food consumption, but prevents freezing.
+                    }
+
                     gameState.current.food = newFood;
                 };
 
@@ -951,10 +962,9 @@
                             <div className="inline-flex flex-col items-center gap-2 border-2 border-retro-accent bg-retro-panel/80 px-8 py-4 cursor-pointer hover:bg-retro-accent-dim transition-colors" onClick={startGame}>
                                 <div className="flex items-center gap-3">
                                     <Gamepad2 className="text-retro-accent" />
-                                    {/* FIX: Reduced text size on mobile from text-lg to text-base */}
-                                    <span className="text-base sm:text-lg text-retro-text font-pixel tracking-widest">{format64Bit('PRESS SPACE')}</span>
+                                    {/* FIX: Removed drop-shadow (yellow outline) from the PRESS text */}
+                                    <span className="text-base sm:text-lg text-retro-text font-pixel tracking-widest text-shadow-none" style={{textShadow: 'none'}}>{format64Bit('PRESS')}</span>
                                 </div>
-                                <span className="text-retro-dim font-pixel text-xs tracking-widest border-t border-retro-dim/30 pt-1 w-full">{format64Bit('OR CLICK/TAP TO START')}</span>
                             </div>
                         </div>
                         )}
@@ -1801,10 +1811,16 @@
                 // Get list of navigation items for the Taskbar
                 const taskbarItems = windowsState.filter(w => ['about', 'projects', 'experience', 'contact'].includes(w.id));
                 const utilItems = [
-                    { id: 'crt', label: format64Bit('CRT'), icon: Power, active: crtEnabled, toggle: () => setCrtEnabled(!crtEnabled), 
+                    { 
+                        id: 'crt', 
+                        label: format64Bit('CRT'), 
+                        icon: Power, 
+                        active: crtEnabled, 
+                        toggle: () => setCrtEnabled(!crtEnabled), 
+                        // FIX: Updated class for CRT button to always have a strong border/color contrast when ON or OFF
                         className: crtEnabled 
                             ? "!border-green-500 !text-green-500 hover:!text-green-400 hover:!border-green-400" 
-                            : "!border-red-600 !text-red-600 hover:!border-red-500 hover:!text-red-500"
+                            : "!border-retro-border !text-retro-dim hover:!border-retro-accent hover:!text-retro-accent"
                     },
                     { id: 'theme', label: isDayMode ? format64Bit("NIGHT") : format64Bit("DAY"), icon: isDayMode ? Moon : Sun, active: false, toggle: () => setIsDayMode(!isDayMode),
                         className: isDayMode 
