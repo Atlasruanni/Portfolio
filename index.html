@@ -229,7 +229,8 @@
 
                 // 5. Cleanup AMPERSAND: Remove the underscores specifically surrounding the '&' to achieve the requested " & " style.
                 // This converts "_&_" back to " & "
-                result = result.replace(/_&_/g, ' & ');
+                result = result.replace(/_&_/g, ' | ');
+
 
                 // 6. Cleanup PIPE: Replace underscores around pipe with spaces to achieve the requested " | " style.
                 // This converts "_|_" back to " | "
@@ -585,7 +586,8 @@
                 if (stage === 'WELCOME') {
                     return (
                         <div className="fixed inset-0 bg-black z-[100] flex flex-col justify-center items-center font-pixel text-retro-accent">
-                            <h1 className={`text-6xl font-pixel-bold text-retro-accent drop-shadow-[0_0_15px_var(--accent-glow)] transition-opacity duration-500`}
+                            {/* FIX: Reduced text size on mobile (sm:hidden) from text-6xl to text-4xl */}
+                            <h1 className={`text-4xl sm:text-6xl font-pixel-bold text-retro-accent drop-shadow-[0_0_15px_var(--accent-glow)] transition-opacity duration-500`}
                                 style={{ opacity: welcomeOpacity }}
                             >
                                 {format64Bit('WELCOME')}
@@ -606,12 +608,14 @@
                             
                             <div className={`w-full max-w-xl mx-auto space-y-4 transition-opacity duration-300 ${opacityClass}`}> 
                                 
-                                <h1 className="text-3xl font-pixel-bold text-center drop-shadow-[0_0_10px_var(--accent-glow)]">ATLAS_OS V64.0</h1>
+                                {/* FIX: Reduced text size on mobile from text-3xl to text-xl */}
+                                <h1 className="text-xl sm:text-3xl font-pixel-bold text-center drop-shadow-[0_0_10px_var(--accent-glow)]">ATLAS_OS V64.0</h1>
 
                                 {/* Status Text */}
+                                {/* FIX: Reduced text size on mobile from text-sm to text-xs */}
                                 <div className="flex items-center justify-start text-base text-retro-dim/80 h-6">
                                     <span className="text-retro-accent">{format64Bit('STATUS:')}</span>
-                                    <span className="ml-2 animate-pulse text-retro-text text-sm">
+                                    <span className="ml-2 animate-pulse text-retro-text text-xs sm:text-sm">
                                         {status} 
                                     </span>
                                 </div>
@@ -856,12 +860,14 @@
                     <div className="relative z-10 text-center">
                         {gameStatus === 'IDLE' && (
                         <div className="animate-pulse space-y-4">
-                            <h2 className="text-4xl font-pixel-bold text-retro-accent drop-shadow-[0_0_10px_var(--accent-dim)]">{format64Bit('SYSTEM IDLE')}</h2>
+                            {/* FIX: Reduced text size on mobile from text-4xl to text-3xl */}
+                            <h2 className="text-3xl sm:text-4xl font-pixel-bold text-retro-accent drop-shadow-[0_0_10px_var(--accent-dim)]">{format64Bit('SYSTEM IDLE')}</h2>
                             
                             <div className="inline-flex flex-col items-center gap-2 border-2 border-retro-accent bg-retro-panel/80 px-8 py-4 cursor-pointer hover:bg-retro-accent-dim transition-colors" onClick={startGame}>
                                 <div className="flex items-center gap-3">
                                     <Gamepad2 className="text-retro-accent" />
-                                    <span className="text-retro-text font-pixel tracking-widest text-lg">{format64Bit('PRESS SPACE')}</span>
+                                    {/* FIX: Reduced text size on mobile from text-lg to text-base */}
+                                    <span className="text-base sm:text-lg text-retro-text font-pixel tracking-widest">{format64Bit('PRESS SPACE')}</span>
                                 </div>
                                 <span className="text-retro-dim font-pixel text-xs tracking-widest border-t border-retro-dim/30 pt-1 w-full">{format64Bit('OR CLICK TO START')}</span>
                             </div>
@@ -901,8 +907,9 @@
                         {gameStatus === 'PLAYING' && (
                             <React.Fragment>
                                 {/* Score at Top */}
+                                {/* FIX: Reduced text size on mobile from text-4xl to text-2xl */}
                                 <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-20 select-none">
-                                    <div className="font-pixel-bold text-retro-accent text-4xl drop-shadow-[0_0_10px_var(--accent-dim)]">
+                                    <div className="font-pixel-bold text-retro-accent text-2xl sm:text-4xl drop-shadow-[0_0_10px_var(--accent-dim)]">
                                         {score}
                                     </div>
                                 </div>
