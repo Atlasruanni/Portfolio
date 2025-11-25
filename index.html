@@ -1070,25 +1070,29 @@
                 let finalHoverClasses = '';
                 if (isMobile) {
                     // Mobile: Explicitly remove all hover and border classes.
+                    // This handles hover on the base element (which is the main button area)
                     finalHoverClasses = className
                         .replace(/hover:!bg-[a-z]+-?\d*/g, '')
                         .replace(/hover:!text-[a-z]+-?\d*/g, '')
                         .replace(/hover:!border-[a-z]+-?\d*/g, '')
-                        .replace(/border-2 border-retro-border/g, ''); // Ensure no border class leaks from desktop config
+                        .replace(/border-2 border-retro-border/g, '')
+                        .replace(/text-retro-dim hover:text-retro-accent/g, 'text-retro-dim');
                 } else {
                     // Desktop: Apply the standard effects plus custom classes
                     finalHoverClasses = className;
                 }
 
                 // Check for generic hover classes that need to be suppressed on mobile
-                const baseHoverSuppression = isMobile ? 'hover:text-retro-dim hover:border-retro-border' : 'hover:text-retro-accent hover:border-retro-accent';
+                // The implicit hover definitions for desktop: hover:text-retro-accent hover:border-retro-accent are still in the logic below.
+                // We need to suppress them for mobile by setting the hover class to the dim color.
+                const baseHoverClasses = isMobile ? 'hover:text-retro-dim hover:border-retro-border' : 'hover:text-retro-accent hover:border-retro-accent';
                 
 
                 const buttonClasses = `${baseClasses}
                     ${isMobile ? mobileClasses : borderClasses}
                     ${active 
                         ? `text-retro-accent ${isMobile ? 'shadow-none translate-y-0' : desktopActiveShadowClass}` 
-                        : `text-retro-dim ${isMobile ? '' : baseHoverSuppression} ${isMobile ? mobileClasses : desktopShadowClass}`
+                        : `text-retro-dim ${isMobile ? '' : baseHoverClasses} ${isMobile ? mobileClasses : desktopShadowClass}`
                     }
                     ${finalHoverClasses}
                 `;
