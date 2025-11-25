@@ -1907,10 +1907,12 @@
                 // The order in which they appear here is the order in the mobile taskbar
                 const taskbarItems = windowsState.filter(w => ['about', 'projects', 'experience', 'contact'].includes(w.id));
                 
-                // FIX 2: Updated logic for theme button to only use theme colors, removing green/red logic.
+                // Define Reset button item separately for placement control
+                const resetItem = { id: 'reset', label: format64Bit('RESET'), icon: Grid, active: false, toggle: handleSystemReset };
+
+
+                // FIX: Redefined utilItems array WITHOUT the reset button for cleaner iteration
                 const utilItems = [
-                    // FIX 1: Added Reset button to utilities (Mobile Only)
-                    { id: 'reset', label: format64Bit('RESET'), icon: Grid, active: false, toggle: handleSystemReset },
                     { 
                         id: 'crt', 
                         label: format64Bit('CRT'), 
@@ -1929,8 +1931,6 @@
                         active: false, 
                         toggle: () => setIsDayMode(!isDayMode),
                         // Theme button now uses desktop border and strong hover effect
-                        // FIX: Added explicit border for desktop version (ToolIcon handles mobile border removal)
-                        // FIX: Reverted to high contrast background hover as requested
                         className: isDayMode
                             ? "border-2 border-retro-border text-retro-dim hover:!bg-black hover:!text-white hover:!border-black"
                             : "border-2 border-retro-border text-retro-dim hover:!bg-white hover:!text-black hover:!border-white"
@@ -1990,8 +1990,8 @@
                             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-retro-panel via-retro-accent/20 to-retro-panel"></div>
                             <div className="flex flex-col items-center justify-center w-full gap-4 relative z-10">
                                 
-                                {/* 1. ADD BACK THE TOP RESET BUTTON (PC version) */}
-                                <ToolIcon label={format64Bit('RESET')} icon={Grid} onClick={handleSystemReset} active={false} shadowDirection="down" className="hover:!bg-red-600 hover:!text-white hover:!border-red-600" />
+                                {/* 1. PC RESET BUTTON (Manually added at the top) */}
+                                <ToolIcon label={resetItem.label} icon={resetItem.icon} onClick={resetItem.toggle} active={false} shadowDirection="down" className="hover:!bg-red-600 hover:!text-white hover:!border-red-600" />
                                 
                                 {/* PDF Button */}
                                 <button 
@@ -2021,8 +2021,8 @@
                                 
                                 <div className="w-[2rem] h-[2px] bg-retro-border"></div>
                                 
-                                {/* PC Utility Icons (Filtered to exclude Reset, as it is placed manually above) */}
-                                {utilItems.filter(item => item.id !== 'reset').map(item => (
+                                {/* PC Utility Icons (CRT, THEME, SYS) */}
+                                {utilItems.map(item => (
                                     <ToolIcon 
                                         key={item.id}
                                         label={item.label} 
@@ -2030,7 +2030,6 @@
                                         onClick={item.toggle} 
                                         active={item.active} 
                                         shadowDirection="down" 
-                                        // FIX: Conditionally add border classes based on item ID for desktop only
                                         className={item.className}
                                     />
                                 ))}
@@ -2096,6 +2095,18 @@
                             {/* MOBILE NAVIGATION BAR (Visible on mobile) */}
                             {/* FIX 2: Reduced height to h-14 for a slimmer bar */}
                             <div className="fixed bottom-0 left-0 right-0 h-14 bg-retro-panel border-t-2 border-retro-border z-50 flex justify-around items-center px-1 sm:hidden">
+                                
+                                {/* 1. MOBILE RESET BUTTON (Far Left) */}
+                                <button
+                                    key={resetItem.id}
+                                    onClick={resetItem.toggle} 
+                                    className={`flex flex-col items-center justify-center w-[3rem] h-[3rem] transition-all duration-200 bg-retro-panel relative shadow-none hover:shadow-none hover:translate-y-0 text-retro-dim`}
+                                    title={resetItem.label}
+                                >
+                                    <resetItem.icon size="1.25rem" />
+                                </button>
+                                
+                                {/* 2. Main Window Buttons (BIO, WORK, XP, CMD, MSG) */}
                                 {taskbarItems.map(item => {
                                     const isActive = activeWindowId === item.id;
                                     // Base classes for mobile buttons (no shadow/up-down effect, NO HOVER)
@@ -2118,9 +2129,10 @@
                                     );
                                 })}
 
-                                {/* FIX 3: Move utility buttons to the bottom bar */}
+                                {/* 3. Divider */}
                                 <div className="h-full border-l-2 border-retro-border/50 mx-1"></div>
 
+                                {/* 4. Utility Buttons (CRT, THEME, SYS) */}
                                 {utilItems.map(item => {
                                     // Base classes for utility buttons (no shadow/up-down effect, NO BORDER, NO BG)
                                     const baseClasses = 'w-[3rem] h-[3rem] !text-sm flex flex-col items-center justify-center transition-all duration-200 bg-retro-panel relative shadow-none hover:shadow-none hover:translate-y-0 !border-0';
@@ -2136,12 +2148,8 @@
                                     } else if (item.id === 'a11y') {
                                         // Only apply colors based on open state, NOT hover
                                         colorClass = a11yMenuOpen ? 'text-retro-accent !bg-retro-accent/10' : 'text-retro-dim';
-                                    } else if (item.id === 'reset') {
-                                         // FIX: Reset button styling for mobile footer
-                                         colorClass = 'text-retro-dim'; 
-                                    }
-
-
+                                    } 
+                                    
                                     const finalClasses = `${baseClasses} ${colorClass}`;
                                     
                                     return (
