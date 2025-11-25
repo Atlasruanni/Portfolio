@@ -1140,7 +1140,7 @@
                                     }
                                 >
                                     <div className="flex items-center gap-3 font-pixel-bold text-sm">
-                                        <tab.icon size={16} />
+                                        <tab.icon size="1.25rem" />
                                         <span>{format64Bit(tab.title.replace(/\..*$/, ''))}</span>
                                     </div>
                                     {activeWindowId === tab.id && (
@@ -2018,15 +2018,18 @@
                         {/* MOBILE/TASKBAR HEADER (Visible on mobile, hidden on sm+) */}
                         {/* FIX: Removed YILIN_ZHU title and switched to justify-between, adding system info on the left */}
                         <div className={`fixed top-0 left-0 right-0 h-12 bg-retro-panel border-b-2 border-retro-border z-50 flex justify-between items-center px-2 sm:hidden transition-opacity duration-500 ${appOpacityClass}`}>
-                            {/* Left Side: SYS_VER and TIME */}
-                            <div className="flex flex-col text-left font-pixel text-[0.55rem] text-retro-dim leading-tight">
-                                <span>{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')}</span>
-                                <span>{format64Bit('TIME:')} {currentTime.split(' | ')[0]}</span>
+                            {/* Left Side: SYS_VER and TIME - Now 1 line each, slightly larger text */}
+                            <div className="flex flex-col text-left font-pixel text-[0.6rem] text-retro-dim justify-center leading-none h-full">
+                                {/* Consolidated SYS_VER and SEC into one line */}
+                                <span className="h-1/2 flex items-end">{format64Bit('SYS_VER: 64.0.1')} | {format64Bit('SEC: 07-G')}</span>
+                                {/* TIME on the bottom half */}
+                                <span className="h-1/2 flex items-start">{format64Bit('TIME:')} {currentTime.split(' | ')[0]}</span>
                             </div>
-                            {/* Right Side: NET and MEM status */}
-                            <div className="flex flex-col text-right font-pixel text-[0.55rem] text-retro-dim leading-tight">
-                                <span className="text-retro-accent">{format64Bit('NET: SECURE')}</span>
-                                <span className="text-retro-accent">{format64Bit('MEM: 640K')}</span>
+                            {/* Right Side: NET and MEM status - Now 1 line each, slightly larger text */}
+                            <div className="flex flex-col text-right font-pixel text-[0.6rem] text-retro-dim justify-center leading-none h-full">
+                                {/* Consolidated NET and MEM into one line, using ACCENT color */}
+                                <span className="text-retro-accent h-1/2 flex items-end">{format64Bit('NET: SECURE')}</span>
+                                <span className="text-retro-accent h-1/2 flex items-start">{format64Bit('MEM: 640K')}</span>
                             </div>
                         </div>
 
