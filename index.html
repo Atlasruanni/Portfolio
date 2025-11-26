@@ -617,7 +617,7 @@
                         // FIX: Ensure full centering using flex utility classes on both containers
                         <div className={`fixed inset-0 bg-black z-[100] p-8 font-pixel text-retro-accent text-lg md:text-xl flex flex-col justify-center items-center overflow-hidden transition-opacity duration-500 ${opacityClass}`}>
                             
-                            {/* FIX: Changed mt-[-2rem] back to mt-[-1rem] for better vertical centering correction */}
+                            {/* FIX: Corrected vertical centering by reducing negative offset */}
                             <div className={`w-full max-w-xl mx-auto space-y-4 mt-[-1rem]`}> 
                                 
                                 {/* FIX: Reduced text size on mobile from text-3xl to text-xl */}
@@ -1043,9 +1043,13 @@
             });
 
             // --- COMPONENT: TOOL ICON (Adjusted to allow mobile header usage) (Memoized) ---
-            const ToolIcon = React.memo(({ label, icon: Icon, onClick, active, shadowDirection = 'down', className = '' }) => {
+            const ToolIcon = React.memo(({ label, icon: Icon, onClick, active, shadowDirection = 'down', className = '', windowState = null }) => {
                 // Determine if we are on mobile (for removing shadow/translate)
                 const isMobile = window.innerWidth < 640;
+                
+                // NEW LOGIC: Check for minimized state (Desktop Only)
+                // isMinimizedOnly is true if the window is open but isMinimized is true
+                const isMinimizedOnly = !isMobile && windowState && windowState.isOpen && windowState.isMinimized;
 
                 const desktopShadowClass = shadowDirection === 'up' 
                     ? 'shadow-[0_-4px_0px_var(--accent-dim)] hover:shadow-[0_0_15px_var(--accent-glow)] hover:translate-y-[-2px]'
@@ -1056,7 +1060,6 @@
                     : 'shadow-[0_0_10px_var(--accent-glow)] translate-y-[2px] border-retro-accent';
                 
                 // Define mobile classes to remove shadow and translation effects
-                // NOTE: We only want to remove the implicit base hover effects from the ToolIcon definition.
                 const mobileClasses = "shadow-none hover:shadow-none hover:translate-y-0";
 
                 // Base classes for the button
@@ -1069,7 +1072,6 @@
                 let finalHoverClasses = '';
                 if (isMobile) {
                     // Mobile: Explicitly remove all hover and border classes.
-                    // This handles hover on the base element (which is the main button area)
                     finalHoverClasses = className
                         .replace(/hover:!bg-[a-z]+-?\d*/g, '')
                         .replace(/hover:!text-[a-z]+-?\d*/g, '')
@@ -1082,12 +1084,10 @@
                 }
 
                 // Check for generic hover classes that need to be suppressed on mobile
-                // The implicit hover definitions for desktop: hover:text-retro-accent hover:border-retro-accent are still in the logic below.
-                // We need to suppress them for mobile by setting the hover class to the dim color.
                 const baseHoverClasses = isMobile ? 'hover:text-retro-dim hover:border-retro-border' : 'hover:text-retro-accent hover:border-retro-accent';
                 
-
-                const buttonClasses = `${baseClasses}
+                // Set button classes based on state
+                let buttonClasses = `${baseClasses}
                     ${isMobile ? mobileClasses : borderClasses}
                     ${active 
                         ? `text-retro-accent ${isMobile ? 'shadow-none translate-y-0' : desktopActiveShadowClass}` 
@@ -1095,6 +1095,18 @@
                     }
                     ${finalHoverClasses}
                 `;
+                
+                // Override for minimized state (PC ONLY)
+                const minimizedClasses = isMinimizedOnly
+                    ? `!text-green-500 !border-green-500 hover:!text-green-400 hover:!border-green-400`
+                    : '';
+
+                if (isMinimizedOnly) {
+                     // Since we need to replace the active/inactive/hover classes with the minimized green look,
+                     // we reset them using the general base classes plus the minimized overrides.
+                    buttonClasses = `${baseClasses} ${borderClasses} ${minimizedClasses}`;
+                }
+
 
                 return (
                     <button 
@@ -1103,7 +1115,9 @@
                         className={buttonClasses}
                         title={label}
                     >
-                        <Icon size="1.5rem" strokeWidth={2} />
+                        {/* ICON: Apply rotation for minimized state (PC Only) */}
+                        {/* FIX: Changed rotation from rotate-45 to rotate-[-45deg] */}
+                        <Icon size="1.5rem" strokeWidth={2} className={`transition-transform duration-200 ${isMinimizedOnly ? 'rotate-[-45deg]' : 'rotate-0'}`} />
                         
                         {/* Tooltip visible only on md+ screens */}
                         <div className="absolute left-full ml-[1.25rem] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 hidden md:block">
@@ -2058,16 +2072,21 @@
                                 <div className="w-[2rem] h-[2px] bg-retro-border"></div> 
                                 
                                 {/* DESKTOP WINDOW TABS (Still visible on desktop) */}
-                                {initialWindows.map(item => (
-                                    <ToolIcon 
-                                        key={item.id}
-                                        label={item.title.replace(/\..*$/, '')} 
-                                        icon={item.icon} 
-                                        onClick={() => toggleWindow(item.id)} 
-                                        active={activeWindowId === item.id} 
-                                        shadowDirection="down" 
-                                    />
-                                ))}
+                                {initialWindows.map(item => {
+                                    const windowState = windowsState.find(w => w.id === item.id);
+
+                                    return (
+                                        <ToolIcon 
+                                            key={item.id}
+                                            label={item.title.replace(/\..*$/, '')} 
+                                            icon={item.icon} 
+                                            onClick={() => toggleWindow(item.id)} 
+                                            active={windowState.isOpen && !windowState.isMinimized} 
+                                            windowState={windowState} // Pass the state for minimized check
+                                            shadowDirection="down" 
+                                        />
+                                    );
+                                })}
 
                                 <div className="w-[2rem] h-[2px] bg-retro-border"></div>
                                 
